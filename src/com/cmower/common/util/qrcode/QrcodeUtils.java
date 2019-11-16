@@ -136,46 +136,47 @@ public class QrcodeUtils {
 			// 头像图
 			File headimgFile = null;
 
-			if (StringUtils.isNotEmpty(config.getHeadimgUrl())) {
-				logger.info("网络图片{}" + config.getHeadimgUrl());
-
-				CloseableHttpClient httpclient = HttpClientBuilder.create().build();
-				HttpGet httpget = new HttpGet(config.getHeadimgUrl());
-				httpget.addHeader("Content-Type", "text/html;charset=UTF-8");
-				// 配置请求的超时设置
-				RequestConfig requestConfig = RequestConfig.custom().setConnectionRequestTimeout(500)
-						.setConnectTimeout(500).setSocketTimeout(500).build();
-				httpget.setConfig(requestConfig);
-
-				try (CloseableHttpResponse response = httpclient.execute(httpget);
-						InputStream headimgStream = handleResponse(response);) {
-
-					Header[] contentTypeHeader = response.getHeaders("Content-Type");
-					if (contentTypeHeader != null && contentTypeHeader.length > 0) {
-						if (contentTypeHeader[0].getValue().startsWith(ContentType.APPLICATION_JSON.getMimeType())) {
-
-							// application/json; encoding=utf-8 下载媒体文件出错
-							String responseContent = handleUTF8Response(response);
-
-							logger.warn("下载网络头像出错{}", responseContent);
-						}
-					}
-
-					headimgFile = createTmpFile(headimgStream, "headimg_" + UUID.randomUUID(), "jpg");
-				} catch (Exception e) {
-					logger.error(e.getMessage(), e);
-					throw new Exception("头像文件读取有误！", e);
-				} finally {
-					httpget.releaseConnection();
-				}
-
-			} else {
+			//不从网络获取，使用本地默认头像
+//			if (StringUtils.isNotEmpty(config.getHeadimgUrl())) {
+//				logger.info("网络图片{}" + config.getHeadimgUrl());
+//
+//				CloseableHttpClient httpclient = HttpClientBuilder.create().build();
+//				HttpGet httpget = new HttpGet(config.getHeadimgUrl());
+//				httpget.addHeader("Content-Type", "text/html;charset=UTF-8");
+//				// 配置请求的超时设置
+//				RequestConfig requestConfig = RequestConfig.custom().setConnectionRequestTimeout(500)
+//						.setConnectTimeout(500).setSocketTimeout(500).build();
+//				httpget.setConfig(requestConfig);
+//
+//				try (CloseableHttpResponse response = httpclient.execute(httpget);
+//						InputStream headimgStream = handleResponse(response);) {
+//
+//					Header[] contentTypeHeader = response.getHeaders("Content-Type");
+//					if (contentTypeHeader != null && contentTypeHeader.length > 0) {
+//						if (contentTypeHeader[0].getValue().startsWith(ContentType.APPLICATION_JSON.getMimeType())) {
+//
+//							// application/json; encoding=utf-8 下载媒体文件出错
+//							String responseContent = handleUTF8Response(response);
+//
+//							logger.warn("下载网络头像出错{}", responseContent);
+//						}
+//					}
+//
+//					headimgFile = createTmpFile(headimgStream, "headimg_" + UUID.randomUUID(), "jpg");
+//				} catch (Exception e) {
+//					logger.error(e.getMessage(), e);
+//					throw new Exception("头像文件读取有误！", e);
+//				} finally {
+//					httpget.releaseConnection();
+//				}
+//
+//			} else {
 				InputStream headimgStream = Thread.currentThread().getContextClassLoader()
 						.getResourceAsStream(MatrixToBgImageConfig.DEFAULT_HEADIMGURL);
 
 				headimgFile = Files.createTempFile("headimg_" + UUID.randomUUID(), ".jpg").toFile();
 				FileUtils.copyInputStreamToFile(headimgStream, headimgFile);
-			}
+//			}
 
 			logger.info("头像图 {}", headimgFile);
 
@@ -192,6 +193,7 @@ public class QrcodeUtils {
 			logger.debug(file.getAbsolutePath());
 
 			MatrixToImageWriter.writeToFile(qrCodeMatrix, FORMAT, file);
+			logger.debug("生成二维码：{}", file);
 			if (bgFile != null) {
 				// 添加背景图片, 此处一定需要重新进行读取，而不能直接使用二维码的BufferedImage 对象
 				BufferedImage img = ImageIO.read(file);

@@ -11,7 +11,10 @@ import com.cmower.common.util.qrcode.QrcodeUtils;
 
 public class QrcodeUtilsTest {
 
-	@Test
+	public static void main(String[] args) throws IOException {
+		new QrcodeUtilsTest().testCreateQrcodeMatrixToBgImageConfig();
+	}
+
 	public void testCreateQrcodeMatrixToBgImageConfig() throws IOException {
 		MatrixToBgImageConfig config = new MatrixToBgImageConfig();
 
